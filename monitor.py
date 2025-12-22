@@ -5,14 +5,14 @@ import time
 from playwright.sync_api import sync_playwright
 
 # --- 配置區 ---
-DISCORD_WEBHOOK_URL = os.environ["DISCORD_WEBHOOK"]
+webhook_raw = os.environ.get("DISCORD_WEBHOOK", "")
+DISCORD_WEBHOOK_URLS = [url.strip() for url in webhook_raw.split(",") if url.strip()]
 LAST_NEWS_FILE = "last_news_title.txt"
 
 def send_to_discord(title, link, text_content):
-    """將文字公告發送到 Discord"""
-    # Discord Embed 的內容上限為 4096 字，保險起見截斷在 3000 字
+    """發送到所有設定的 Discord Webhooks"""
     if len(text_content) > 3000:
-        text_content = text_content[:3000] + "\n\n...(內容過長，請點擊連結查看全文)"
+        text_content = text_content[:3000] + "\n\n...(內容過長)"
 
     payload = {
         "username": "FFXIV 公告小幫手",
@@ -20,16 +20,20 @@ def send_to_discord(title, link, text_content):
             "title": title,
             "url": link,
             "description": text_content,
-            "color": 3447003,  # 藍色
-            "footer": {"text": f"擷取時間: {time.strftime('%Y-%m-%d %H:%M:%S')}"}
+            "color": 3447003,
         }]
     }
 
-    res = requests.post(DISCORD_WEBHOOK_URL, json=payload)
-    if res.status_code in [200, 204]:
-        print("✅ 公告已成功發送到 Discord")
-    else:
-        print(f"❌ 發送失敗，狀態碼: {res.status_code}")
+    # 遍歷所有網址發送
+    for url in DISCORD_WEBHOOK_URLS:
+        try:
+            res = requests.post(url, json=payload)
+            if res.status_code in [200, 204]:
+                print(f"✅ 成功發送到 Webhook: {url[:30]}...")
+            else:
+                print(f"❌ 發送失敗 ({res.status_code}): {url[:30]}...")
+        except Exception as e:
+            print(f"發送至 {url[:30]} 時發生異常: {e}")
 
 def run_scraper():
     with sync_playwright() as p:
