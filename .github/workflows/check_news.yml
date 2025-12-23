@@ -8,6 +8,8 @@ on:
 jobs:
   check-and-notify:
     runs-on: ubuntu-latest
+    permissions: # 必須加上這個，Action 才有權限推播回 Repo
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -29,8 +31,12 @@ jobs:
 
       - name: Commit and push if news updated
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add last_news_title.txt
-          git commit -m "fix: Update news title" || exit 0
-          git push
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add last_news_id_*.txt
+          if git diff --staged --quiet; then
+            echo "No changes"
+          else
+            git commit -m "chore: update news records"
+            git push
+          fi
