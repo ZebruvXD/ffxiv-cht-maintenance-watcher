@@ -97,8 +97,16 @@ def run_scraper():
                 # inner_text 會嘗試模仿瀏覽器渲染的排版（包含縮排）
                 article_text = article_element.inner_text().strip()
 
+                # 核心邏輯：匹配所有連續 2 個以上的 \n，並將每一組匹配到的長度都減 1
+                def subtract_one(match):
+                    full_match = match.group(0)
+                    # 返回長度減 1 的換行字串
+                    return '\n' * (len(full_match) - 1)
+
+                # re.sub 會尋找所有符合條件的地方，但每一處只會執行一次 lambda 轉換
+                compact_text = re.sub(r'\n{2,}', subtract_one, article_text)
                 # 4. 包裹進代碼塊
-                formatted_text = f"```\n{article_text}\n```"
+                formatted_text = f"```\n{compact_text}\n```"
 
                 # 發送通知
                 category_name = "伺服器維護" if cat == 3 else "公告"
