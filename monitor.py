@@ -8,7 +8,7 @@ from playwright.sync_api import sync_playwright
 webhook_raw = os.environ.get("DISCORD_WEBHOOK", "")
 DISCORD_WEBHOOK_URLS = [url.strip() for url in webhook_raw.split(",") if url.strip()]
 
-CATEGORIES = [3, 4]
+CATEGORIES = [1, 3, 4]
 # 黑名單 ID 清單 (字串格式)
 CAT4_BLACKLIST = ["3", "46", "65"]
 
